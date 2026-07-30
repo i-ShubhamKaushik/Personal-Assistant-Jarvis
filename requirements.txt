@@ -1,0 +1,7 @@
+SpeechRecognition
+pyttsx3
+requests
+openai
+gTTS
+pygame
+pyaudio
