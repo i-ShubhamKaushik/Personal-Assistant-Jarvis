@@ -22,7 +22,7 @@ from urllib.parse import quote
 # =========================
 
 OPENAI_API_KEY = "your-openai-api-key-here"   # Paste your key here
-newsapi = "pub_151e33d271684370ab40929e1a79786d"
+newsapi = "Add API key here"
 VOICE          = "en-IN-PrabhatNeural"
 AI_MODEL       = "gpt-4o-mini"
 WS_PORT        = 6789                          # WebSocket port for the UI
