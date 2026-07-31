@@ -4,6 +4,7 @@ import asyncio
 import sounddevice as sd
 import soundfile as sf
 import io
+import requests
 import webbrowser
 import threading
 import json
@@ -13,12 +14,15 @@ import time
 import os
 import pygame
 from gtts import gTTS
+from urllib.parse import quote
+
 
 # =========================
 # CONFIG
 # =========================
 
 OPENAI_API_KEY = "your-openai-api-key-here"   # Paste your key here
+newsapi = "pub_151e33d271684370ab40929e1a79786d"
 VOICE          = "en-IN-PrabhatNeural"
 AI_MODEL       = "gpt-4o-mini"
 WS_PORT        = 6789                          # WebSocket port for the UI
@@ -196,24 +200,12 @@ def processCommand(command):
     ui_log("cmd", f"[Command]: {cmd}")
     ui_state("thinking", "PROCESSING...")
 
-    if "test voice" in cmd:
-        speak("Voice system is working perfectly, Boss.")
 
-    elif "open google" in cmd:
-        speak("Opening Google.")
-        webbrowser.open("https://google.com")
+    if cmd.lower().startswith("open "):
+        site = cmd.split(maxsplit=1)[1]
+        speak(f"Opening {site}.")
+        webbrowser.open(f"https://{site}.com")
 
-    elif "open youtube" in cmd:
-        speak("Opening YouTube.")
-        webbrowser.open("https://youtube.com")
-
-    elif "open github" in cmd:
-        speak("Opening GitHub.")
-        webbrowser.open("https://github.com")
-
-    elif "open spotify" in cmd:
-        speak("Opening Spotify.")
-        webbrowser.open("https://open.spotify.com")
 
     elif "time" in cmd:
         speak(f"The time is {datetime.now().strftime('%I:%M %p')}, Boss.")
@@ -225,6 +217,26 @@ def processCommand(command):
         speak("Goodbye Boss. Shutting down.")
         ui_state("mute", "OFFLINE")
         running = False
+
+
+    elif cmd.lower().startswith("play"):
+        song = cmd[5:].strip()
+        link = f"https://www.youtube.com/results?search_query={quote(song)}"
+        webbrowser.open(link)
+
+
+    elif "news" in cmd.lower():
+        r = requests.get(f"https://newsapi.org/v2/top-headlines?country=in&apiKey={newsapi}")
+        if r.status_code == 200:
+            # Parse the JSON response
+            data = r.json()
+            
+            # Extract the articles
+            articles = data.get('articles', [])
+            
+            # Print the headlines
+            for article in articles:
+                speak(article['title'])
 
     else:
         speak("Let me think, Boss.")
