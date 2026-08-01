@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>JARVIS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="scanline"></div>
+<div class="hud">
+
+  <div class="header">
+    <div class="logo">JARVIS</div>
+    <div class="conn-badge">
+      <div class="conn-dot" id="connDot"></div>
+      <span id="connLabel">DISCONNECTED</span>
+    </div>
+    <div class="version" id="versionLabel">v1.0</div>
+  </div>
+
+  <div class="ring-wrap">
+    <svg class="ring-svg" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- static guide rings -->
+      <circle cx="110" cy="110" r="100" fill="none" stroke="rgba(0,168,255,0.05)" stroke-width="1"/>
+      <circle cx="110" cy="110" r="88"  fill="none" stroke="rgba(0,168,255,0.04)" stroke-width="0.5"/>
+      <circle cx="110" cy="110" r="76"  fill="none" stroke="rgba(0,168,255,0.07)" stroke-width="0.5"/>
+      <!-- animated arcs -->
+      <circle id="ringOuter" cx="110" cy="110" r="100" fill="none"
+        stroke="#00A8FF" stroke-width="1.5" stroke-linecap="round" stroke-opacity="0.7"
+        stroke-dasharray="628.3" stroke-dashoffset="628.3"
+        transform="rotate(-90 110 110)"/>
+      <circle id="ringInner" cx="110" cy="110" r="76" fill="none"
+        stroke="#00FFF7" stroke-width="1" stroke-linecap="round" stroke-opacity="0.45"
+        stroke-dasharray="477.5" stroke-dashoffset="477.5"
+        transform="rotate(-90 110 110)"/>
+      <!-- audio bars -->
+      <g id="bars"></g>
+      <!-- center disc -->
+      <circle cx="110" cy="110" r="50"
+        fill="rgba(0,168,255,0.04)" stroke="rgba(0,168,255,0.10)" stroke-width="0.5"/>
+    </svg>
+    <div class="ring-label">
+      <div class="state-text" id="stateText">OFFLINE</div>
+      <div class="state-sub"  id="stateSub">CONNECTING...</div>
+    </div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-label">Commands</div>
+      <div class="panel-val" id="cmdCount">0</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Status</div>
+      <div class="panel-val" id="statVal" style="font-size:11px;letter-spacing:1px">OFFLINE</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">Uptime</div>
+      <div class="panel-val" id="uptimeVal">00:00</div>
+    </div>
+  </div>
+
+  <div class="log" id="logBox"></div>
+
+  <div class="input-row">
+    <input class="cmd-input" id="cmdInput" placeholder="Type a command, Boss..." autocomplete="off"/>
+    <button class="send-btn" id="sendBtn">Send</button>
+  </div>
+
+  <hr class="div"/>
+
+  <div class="chips">
+    <div class="chip" id="chipStandby">Standby</div>
+    <div class="chip" id="chipWake">Wake Word</div>
+    <div class="chip" id="chipActive">Active</div>
+    <div class="chip" id="chipThinking">Thinking</div>
+  </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
