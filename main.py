@@ -21,10 +21,15 @@ from urllib.parse import quote
 # CONFIG
 # =========================
 
-OPENAI_API_KEY = "your-openai-api-key-here"   # Paste your key here
-newsapi = "Add API key here"
+ai_client = OpenAI(
+    base_url="http://localhost:11434/v1",
+    api_key="ollama"   # Can be any non-empty string
+)
+
+AI_MODEL = "qwen3:8b"   # or "gemma3:4b"
+
+
 VOICE          = "en-IN-PrabhatNeural"
-AI_MODEL       = "gpt-4o-mini"
 WS_PORT        = 6789                          # WebSocket port for the UI
 
 # =========================
@@ -92,48 +97,62 @@ def start_ws_thread():
 # =========================
 
 async def _speak_async(text):
-    tts = edge_tts.Communicate(text, voice=VOICE)
-    audio_data = b""
-    async for chunk in tts.stream():
-        if chunk["type"] == "audio":
-            audio_data += chunk["data"]
-    if audio_data:
-        data, sr_rate = sf.read(io.BytesIO(audio_data))
-        sd.play(data, sr_rate)
-        sd.wait()
+    communicate = edge_tts.Communicate(text, VOICE)
+    await communicate.save("jarvis_voice.mp3")
 
 def speak(text):
     print(f"Jarvis: {text}")
     ui_log("jarvis", f"Jarvis: {text}")
-    tts = gTTS(text=text, lang="en")
-    tts.save("tts.mp3")
+
+    asyncio.run(_speak_async(text))
 
     if not pygame.mixer.get_init():
         pygame.mixer.init()
 
-    pygame.mixer.music.load("tts.mp3")
-    pygame.mixer.music.play()          
+    pygame.mixer.music.load("jarvis_voice.mp3")
+    pygame.mixer.music.play()
 
     while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
 
     pygame.mixer.music.unload()
-    os.remove("tts.mp3")
+
     try:
-        loop.run_until_complete(_speak_async(text))
-    except Exception as e:
-        print(f"[Speech Error]: {e}")
+        os.remove("jarvis_voice.mp3")
+    except:
+        pass
+
+
+#   Google Text to Speech ⬇️  (Female Voice )
+
+    # tts = gTTS(text=text, lang="en")
+    # tts.save("tts.mp3")
+
+    # if not pygame.mixer.get_init():
+    #     pygame.mixer.init()
+
+    # pygame.mixer.music.load("tts.mp3")
+    # pygame.mixer.music.play()          
+
+    # while pygame.mixer.music.get_busy():
+    #     pygame.time.Clock().tick(10)
+
+    # pygame.mixer.music.unload()
+    # os.remove("tts.mp3")
+
+    
+    # try:
+    #     future = asyncio.run_coroutine_threadsafe(_speak_async(text), loop)
+    #     future.result()
+    # except Exception as e:
+    #     print(f"[Speech Error]: {e}")
 
 
 # =========================
-# AI FALLBACK (OpenAI)
+# AI FALLBACK (Local LLM)
 # =========================
-
-ai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 def ask_ai(question):
-    if not OPENAI_API_KEY or OPENAI_API_KEY == "your-openai-api-key-here":
-        return "Boss, please add your OpenAI API key in the config section."
     try:
         response = ai_client.chat.completions.create(
             model=AI_MODEL,
@@ -142,18 +161,25 @@ def ask_ai(question):
                     "role": "system",
                     "content": (
                         "You are Jarvis, a smart AI assistant like the one from Iron Man. "
-                        "Keep all responses short, spoken, and natural — no bullet points or markdown. "
+                        "Keep all responses short, spoken, and natural. "
+                        "Never use markdown, lists, or emojis. "
                         "Always address the user as Boss."
                     )
                 },
-                {"role": "user", "content": question}
+                {
+                    "role": "user",
+                    "content": question
+                }
             ],
-            max_tokens=150
+            max_tokens=500,
+            temperature=0.7
         )
+
         return response.choices[0].message.content.strip()
+
     except Exception as e:
-        print(f"[OpenAI Error]: {e}")
-        return "I ran into an issue reaching AI, Boss. Please try again."
+        print(f"[Ollama Error]: {e}")
+        return "I'm having trouble connecting to the local AI model, Boss. Please make sure Ollama is running."
 
 # =========================
 # LISTEN
@@ -225,19 +251,6 @@ def processCommand(command):
         webbrowser.open(link)
 
 
-    elif "news" in cmd.lower():
-        r = requests.get(f"https://newsapi.org/v2/top-headlines?country=in&apiKey={newsapi}")
-        if r.status_code == 200:
-            # Parse the JSON response
-            data = r.json()
-            
-            # Extract the articles
-            articles = data.get('articles', [])
-            
-            # Print the headlines
-            for article in articles:
-                speak(article['title'])
-
     else:
         speak("Let me think, Boss.")
         ui_state("thinking", "ASKING AI...")
@@ -249,7 +262,7 @@ def processCommand(command):
 
 if __name__ == "__main__":
     start_ws_thread()
-    speak("Jarvis online. Say Jarvis to wake me up, Boss.")
+    speak("Initialising Jarvis.")
 
     while running:
         try:
