@@ -1,11 +1,8 @@
 import speech_recognition as sr
 import edge_tts
 import asyncio
-import sounddevice as sd
-import soundfile as sf
-import io
-import requests
 import webbrowser
+import subprocess
 import threading
 import json
 from openai import OpenAI
@@ -26,7 +23,7 @@ ai_client = OpenAI(
     api_key="ollama"   # Can be any non-empty string
 )
 
-AI_MODEL = "qwen3:8b"   # or "gemma3:4b"
+AI_MODEL = "qwen3:8b"   # or any model"
 
 
 VOICE          = "en-IN-PrabhatNeural"
@@ -105,6 +102,8 @@ def speak(text):
     ui_log("jarvis", f"Jarvis: {text}")
 
     asyncio.run(_speak_async(text))
+
+    # edge Text to Speech  (Male Voice ⬇️)
 
     if not pygame.mixer.get_init():
         pygame.mixer.init()
@@ -240,7 +239,7 @@ def processCommand(command):
         speak(f"Today is {datetime.now().strftime('%d %B %Y')}, Boss.")
 
     elif any(w in cmd for w in ["exit", "goodbye", "shut down", "stop jarvis"]):
-        speak("Goodbye Boss. Shutting down.")
+        speak("Jarvis, Shutting down.")
         ui_state("mute", "OFFLINE")
         running = False
 
@@ -250,6 +249,9 @@ def processCommand(command):
         link = f"https://www.youtube.com/results?search_query={quote(song)}"
         webbrowser.open(link)
 
+    elif "open notepad" in cmd.lower():
+        speak("Opening Notepad.")
+        subprocess.Popen(["notepad.exe"])
 
     else:
         speak("Let me think, Boss.")
