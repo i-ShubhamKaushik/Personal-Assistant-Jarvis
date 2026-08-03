@@ -262,7 +262,7 @@ def processCommand(command):
 # MAIN
 # =========================
 
-if __name__ == "__main__":
+def start():
     start_ws_thread()
     speak("Initialising Jarvis.")
 
@@ -300,10 +300,13 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             speak("Shutting down. Goodbye Boss.")
             ui_state("mute", "OFFLINE")
-            print("\n[Stopped by user]")
             break
 
         except Exception as e:
             print(f"[Unexpected error]: {e}")
             ui_log("err", f"[Error]: {e}")
             time.sleep(1)
+
+
+if __name__ == "__main__":
+    start()
