@@ -133,4 +133,4 @@ setInterval(() => {
 }, 1000);
 
 animate();
-connect();
+connect(); 
