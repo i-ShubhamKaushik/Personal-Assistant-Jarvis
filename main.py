@@ -12,6 +12,7 @@ import os
 import pygame
 from gtts import gTTS
 from urllib.parse import quote
+# import pywhatkit as kit
 
 
 # =========================
@@ -226,7 +227,7 @@ def processCommand(command):
     ui_state("thinking", "PROCESSING...")
 
 
-    if cmd.lower().startswith("open "):
+    if cmd.lower().startswith("search"):
         site = cmd.split(maxsplit=1)[1]
         speak(f"Opening {site}.")
         webbrowser.open(f"https://{site}.com")
@@ -244,14 +245,27 @@ def processCommand(command):
         running = False
 
 
-    elif cmd.lower().startswith("play"):
-        song = cmd[5:].strip()
-        link = f"https://www.youtube.com/results?search_query={quote(song)}"
-        webbrowser.open(link)
+    # elif cmd.lower().startswith("play"):
+    #     song = cmd[5:].strip()
+    #     link = f"https://www.youtube.com/results?search_query={quote(song)}"
+    #     webbrowser.open(link)
 
-    elif "open notepad" in cmd.lower():
-        speak("Opening Notepad.")
-        subprocess.Popen(["notepad.exe"])
+    # elif "play" and "youtube" in cmd.lower():
+    #     song = cmd[5:].strip()
+    #     link = f"https://www.youtube.com/results?search_query={quote(song)}"
+    #     kit.pywhatkit()              
+
+    # bad me krunga isko 😭    REASON : Network Issue! 😒
+
+
+
+    elif "open" in cmd.lower():
+        query = cmd[5:].strip()
+        try:
+            speak(f"Opening {query}.")
+            os.system('start ' + query)
+        except Exception:
+            speak("I am unable to do that, Boss")
 
     else:
         speak("Let me think, Boss.")
