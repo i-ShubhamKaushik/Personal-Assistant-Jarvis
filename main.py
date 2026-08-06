@@ -12,7 +12,7 @@ import os
 import pygame
 from gtts import gTTS
 from urllib.parse import quote
-# import pywhatkit as kit
+import pywhatkit as kit
 
 
 # =========================
@@ -250,13 +250,14 @@ def processCommand(command):
     #     link = f"https://www.youtube.com/results?search_query={quote(song)}"
     #     webbrowser.open(link)
 
-    # elif "play" and "youtube" in cmd.lower():
-    #     song = cmd[5:].strip()
-    #     link = f"https://www.youtube.com/results?search_query={quote(song)}"
-    #     kit.pywhatkit()              
+#   Not so good for playing music directly. Using Playwhatkit instead⬇️
 
-    # bad me krunga isko 😭    REASON : Network Issue! 😒
 
+
+    elif cmd.lower().startswith("play"):
+        song = cmd[5:].strip()
+        link = f"https://www.youtube.com/results?search_query={quote(song)}"
+        kit.playonyt(link)          
 
 
     elif "open" in cmd.lower():
