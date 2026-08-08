@@ -24,7 +24,7 @@ ai_client = OpenAI(
     api_key="ollama"   # Can be any non-empty string
 )
 
-AI_MODEL = "qwen3:8b"   # or any model"
+AI_MODEL = "gemma3:4b"   # or any model"
 
 
 VOICE          = "en-IN-PrabhatNeural"
@@ -152,9 +152,39 @@ def speak(text):
 # AI FALLBACK (Local LLM)
 # =========================
 
-def ask_ai(question):
+def ask_ai_and_speak(question):
+    sentence = ""
+    full_response = ""
+
+    for chunk in ask_ai_stream(question):
+        print(chunk, end="", flush=True)
+
+        sentence += chunk
+        full_response += chunk
+
+        # Speak when a sentence is complete
+        if any(sentence.rstrip().endswith(p) for p in [".", "?", "!"]):
+            text = sentence.strip()
+
+            if text:
+                speak(text)
+
+            sentence = ""
+
+    # Speak anything remaining
+    if sentence.strip():
+        speak(sentence.strip())
+
+    print()
+
+    return full_response.strip()
+
+
+
+
+def ask_ai_stream(question):
     try:
-        response = ai_client.chat.completions.create(
+        stream = ai_client.chat.completions.create(
             model=AI_MODEL,
             messages=[
                 {
@@ -171,11 +201,56 @@ def ask_ai(question):
                     "content": question
                 }
             ],
-            max_tokens=500,
-            temperature=0.7
+            max_tokens=200,
+            temperature=0.7,
+            stream=True
         )
 
-        return response.choices[0].message.content.strip()
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+    except Exception as e:
+        print(f"[Ollama Error]: {e}")
+        yield "I'm having trouble connecting to the local AI model, Boss. Please make sure Ollama is running."
+
+
+
+
+
+
+def ask_ai(question):
+    try:
+        stream = ai_client.chat.completions.create(
+            model=AI_MODEL,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are Jarvis, a smart AI assistant like the one from Iron Man. "
+                        "Keep all responses short, spoken, and natural. "
+                        "Never use markdown, lists, or emojis. "
+                        "Always address the user as Boss."
+                    )
+                },
+                {
+                    "role": "user",
+                    "content": question
+                }
+            ],
+            max_tokens=300,
+            temperature=0.7,
+            stream=True
+        )
+
+        full_response = ""
+
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                text = chunk.choices[0].delta.content
+                full_response += text
+
+        return full_response.strip()
 
     except Exception as e:
         print(f"[Ollama Error]: {e}")
@@ -239,7 +314,7 @@ def processCommand(command):
     elif "date" in cmd:
         speak(f"Today is {datetime.now().strftime('%d %B %Y')}, Boss.")
 
-    elif any(w in cmd for w in ["exit", "goodbye", "shut down", "stop jarvis"]):
+    elif any(w in cmd for w in ["exit", "good bye", "shutdown", "stop jarvis"]):
         speak("Jarvis, Shutting down.")
         ui_state("mute", "OFFLINE")
         running = False
@@ -268,12 +343,21 @@ def processCommand(command):
         except Exception:
             speak("I am unable to do that, Boss")
 
-    else:
-        speak("Let me think, Boss.")
-        ui_state("thinking", "ASKING AI...")
-        speak(ask_ai(command))
+    # else:
+    #     ui_state("thinking", "ASKING AI...")
+    #     response = ask_ai(command)
+    #     ui_state("speaking", "JARVIS")
+    #     speak(response)
 
-# =========================
+
+    else:
+        ui_state("thinking", "ASKING AI...")
+
+        ui_state("speaking", "JARVIS")
+        ask_ai_and_speak(command)
+
+        ui_state("idle", "READY")
+    # =========================
 # MAIN
 # =========================
 
